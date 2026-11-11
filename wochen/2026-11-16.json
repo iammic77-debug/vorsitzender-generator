@@ -1,0 +1,199 @@
+{
+  "meta": {
+    "titel": "KLAGELIEDER 1–2",
+    "datum": "Do., 19.11.2026",
+    "woche": "Woche 16.–22. November 2026",
+    "montag": "2026-11-16",
+    "erstellt_von": "Claude",
+    "geprueft_von": "",
+    "versammlung": "Tettnang",
+    "saal": "Hauptsaal",
+    "vorsitzender": "",
+    "hilfsratgeber": ""
+  },
+  "items": [
+    {
+      "kind": "song",
+      "time": "19:00",
+      "title": "Lied 28",
+      "who": "Gebet: "
+    },
+    {
+      "kind": "note",
+      "time": "19:05",
+      "title": "Einleitende Worte",
+      "who": "1 Min",
+      "fields": [
+        {
+          "label": "Aufhänger / Bezug zum Bibelabschnitt",
+          "lines": 4,
+          "text": ""
+        },
+        {
+          "label": "Was hebe ich für heute Abend hervor?",
+          "lines": 3,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "kind": "band",
+      "band": "g",
+      "text": "Schätze aus Gottes Wort"
+    },
+    {
+      "kind": "part",
+      "time": "19:06",
+      "title": "1. Eine nachvollziehbare Reaktion auf einen schrecklichen Verlust",
+      "sub": "10 Min. · Klg 2:11, 19",
+      "src": "",
+      "who": "",
+      "rat": null
+    },
+    {
+      "kind": "part",
+      "time": "19:16",
+      "title": "2. Nach geistigen Schätzen graben",
+      "sub": "10 Min. · Klg 2:1",
+      "src": "",
+      "who": "",
+      "rat": null
+    },
+    {
+      "kind": "part",
+      "time": "19:26",
+      "title": "3. Bibellesung",
+      "sub": "4 Min. · Klg 1:8-18",
+      "src": "th Lektion 10",
+      "who": "",
+      "rat": {
+        "lesson": "th Lektion 10 – „Modulation“",
+        "intro": "Ziel: mit Lautstärke, Tonhöhe und Tempo den Sinn des Textes lebendig machen.",
+        "bullets": [
+          "Lautstärke: lauter für Kernaussagen, leiser für Sorge oder Spannung – aber nicht ständig wechseln.",
+          "Tonhöhe: höher bei Begeisterung, tiefer bei Traurigem oder Ernstem.",
+          "Tempo: schneller bei Begeisterung, langsamer bei Wichtigem – Übergänge sanft, Deutlichkeit bleibt."
+        ],
+        "zeit": "4 Min.",
+        "feedback": ""
+      }
+    },
+    {
+      "kind": "band",
+      "band": "b",
+      "text": "Uns im Dienst verbessern"
+    },
+    {
+      "kind": "part",
+      "time": "19:31",
+      "title": "4. Gespräche beginnen",
+      "sub": "3 Min.",
+      "src": "lmd Lektion 2, Punkt 4",
+      "who": "",
+      "rat": {
+        "lesson": "lmd Lektion 2 „Natürlichkeit“ – Punkt 4",
+        "intro": "Punkt 4: Sei geduldig.",
+        "bullets": [
+          "Nicht gleich mit einem biblischen Thema ins Haus fallen.",
+          "Auf einen natürlichen Übergang warten – notfalls erst beim nächsten Gespräch."
+        ],
+        "zeit": "3 Min.",
+        "feedback": ""
+      }
+    },
+    {
+      "kind": "part",
+      "time": "19:35",
+      "title": "5. Interesse fördern",
+      "sub": "4 Min.",
+      "src": "lmd Lektion 9, Punkt 4",
+      "who": "",
+      "rat": {
+        "lesson": "lmd Lektion 9 „Einfühlungsvermögen“ – Punkt 4",
+        "intro": "Punkt 4: Mach dir Gedanken über deinen Gesprächspartner.",
+        "bullets": [
+          "Warum braucht gerade er die Wahrheit?",
+          "Wie würde ein Bibelkurs sein Leben jetzt und in Zukunft verbessern?"
+        ],
+        "zeit": "4 Min.",
+        "feedback": ""
+      }
+    },
+    {
+      "kind": "part",
+      "time": "19:40",
+      "title": "6. Was würdest du sagen?",
+      "sub": "5 Min.",
+      "src": "lmd Lektion 1, Punkt 4b",
+      "who": "",
+      "rat": {
+        "lesson": "lmd Lektion 1 „Interesse am anderen“ – Punkt 4b",
+        "intro": "Punkt 4: Sei ein guter Beobachter – hier besonders 4b.",
+        "bullets": [
+          "Kleidung, Erscheinungsbild oder Wohnumfeld können etwas über Ansichten und Kultur verraten.",
+          "Diese Hinweise nutzen, um ein passendes Thema zu wählen – ohne vorschnell zu urteilen."
+        ],
+        "zeit": "5 Min.",
+        "feedback": ""
+      }
+    },
+    {
+      "kind": "band",
+      "band": "l",
+      "text": "Unser Leben als Christ"
+    },
+    {
+      "kind": "song",
+      "time": "19:47",
+      "title": "Lied 90",
+      "who": ""
+    },
+    {
+      "kind": "part",
+      "time": "19:51",
+      "title": "7. Unsere untätigen Brüder und Schwestern nicht vergessen",
+      "sub": "15 Min. · Gal 6:10; 1Pe 5:2",
+      "src": "",
+      "who": "",
+      "rat": null
+    },
+    {
+      "kind": "part",
+      "time": "20:06",
+      "title": "8. Versammlungsbibelstudium",
+      "sub": "30 Min. · wcg Kap. 17",
+      "src": "",
+      "who": "",
+      "rat": null
+    },
+    {
+      "kind": "note",
+      "time": "20:36",
+      "title": "Schlussworte",
+      "who": "3 Min",
+      "fields": [
+        {
+          "label": "Rückblick / roter Faden des Abends",
+          "lines": 4,
+          "text": ""
+        },
+        {
+          "label": "Bekanntmachungen · Briefe · Notizen",
+          "lines": 4,
+          "text": ""
+        },
+        {
+          "label": "Nächste Woche",
+          "lines": 2,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "kind": "song",
+      "time": "20:40",
+      "title": "Lied 75",
+      "who": "Gebet: "
+    }
+  ]
+}

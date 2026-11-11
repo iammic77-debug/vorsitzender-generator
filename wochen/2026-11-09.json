@@ -1,0 +1,200 @@
+{
+  "meta": {
+    "titel": "JEREMIA 51–52",
+    "datum": "Do., 12.11.2026",
+    "woche": "Woche 9.–15. November 2026",
+    "montag": "2026-11-09",
+    "erstellt_von": "Claude",
+    "geprueft_von": "",
+    "versammlung": "Tettnang",
+    "saal": "Hauptsaal",
+    "vorsitzender": "",
+    "hilfsratgeber": ""
+  },
+  "items": [
+    {
+      "kind": "song",
+      "time": "19:00",
+      "title": "Lied 98",
+      "who": "Gebet: "
+    },
+    {
+      "kind": "note",
+      "time": "19:05",
+      "title": "Einleitende Worte",
+      "who": "1 Min",
+      "fields": [
+        {
+          "label": "Aufhänger / Bezug zum Bibelabschnitt",
+          "lines": 4,
+          "text": ""
+        },
+        {
+          "label": "Was hebe ich für heute Abend hervor?",
+          "lines": 3,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "kind": "band",
+      "band": "g",
+      "text": "Schätze aus Gottes Wort"
+    },
+    {
+      "kind": "part",
+      "time": "19:06",
+      "title": "1. Zedekia – ein abschreckendes Beispiel",
+      "sub": "10 Min. · Jer 52:1, 2; 52:3; 52:8-11",
+      "src": "",
+      "who": "",
+      "rat": null
+    },
+    {
+      "kind": "part",
+      "time": "19:16",
+      "title": "2. Nach geistigen Schätzen graben",
+      "sub": "10 Min. · Jer 51:6, 7, 36",
+      "src": "",
+      "who": "",
+      "rat": null
+    },
+    {
+      "kind": "part",
+      "time": "19:26",
+      "title": "3. Bibellesung",
+      "sub": "4 Min. · Jer 52:6-20",
+      "src": "th Lektion 5",
+      "who": "",
+      "rat": {
+        "lesson": "th Lektion 5 – „Korrekt vorlesen“",
+        "intro": "Ziel: genau das vorlesen, was im Text steht – nichts hinzufügen, weglassen oder ersetzen.",
+        "bullets": [
+          "In Sinngruppen lesen und auf die Satzzeichen achten.",
+          "Jedes Wort richtig aussprechen (bei Unsicherheit vorab nachschlagen / Audio hören).",
+          "Deutlich artikulieren, keine Silben verschlucken – aber nicht überbetonen."
+        ],
+        "zeit": "4 Min.",
+        "feedback": ""
+      }
+    },
+    {
+      "kind": "band",
+      "band": "b",
+      "text": "Uns im Dienst verbessern"
+    },
+    {
+      "kind": "part",
+      "time": "19:31",
+      "title": "4. Gespräche beginnen",
+      "sub": "3 Min.",
+      "src": "lmd Lektion 3, Punkt 3",
+      "who": "",
+      "rat": {
+        "lesson": "lmd Lektion 3 „Freundlichkeit“ – Punkt 3",
+        "intro": "Punkt 3: Versetz dich in die Lage deines Gesprächspartners.",
+        "bullets": [
+          "Überlegen, was ihn beschäftigt und was ihm helfen könnte.",
+          "Aufmerksam zuhören und nicht das Thema wechseln."
+        ],
+        "zeit": "3 Min.",
+        "feedback": ""
+      }
+    },
+    {
+      "kind": "part",
+      "time": "19:35",
+      "title": "5. Gespräche beginnen",
+      "sub": "4 Min.",
+      "src": "lmd Lektion 3, Punkt 4",
+      "who": "",
+      "rat": {
+        "lesson": "lmd Lektion 3 „Freundlichkeit“ – Punkt 4",
+        "intro": "Punkt 4: Sei freundlich und respektvoll.",
+        "bullets": [
+          "Freundlicher Tonfall und respektvolle Wortwahl.",
+          "So reden, dass sich niemand verletzt oder belehrt fühlt."
+        ],
+        "zeit": "4 Min.",
+        "feedback": ""
+      }
+    },
+    {
+      "kind": "part",
+      "time": "19:40",
+      "title": "6. Vortrag",
+      "sub": "5 Min. · Thema: Das Reich Gottes ist eine echte Regierung im Himmel",
+      "src": "lmd Anhang A Pkt 21 · th Lektion 7",
+      "who": "",
+      "rat": {
+        "lesson": "th Lektion 7 – „Zuverlässige Informationen vermitteln“",
+        "intro": "Stütz dich auf zuverlässige Quellen – möglichst direkt aus der Bibel.",
+        "bullets": [
+          "Quellen im Zusammenhang verwenden, Zahlen und Fakten nicht übertreiben.",
+          "Nach einer Quelle mit Frage oder Beispiel zum eigenen Schluss führen.",
+          "Thema aus lmd Anhang A, Punkt 21."
+        ],
+        "zeit": "5 Min.",
+        "feedback": ""
+      }
+    },
+    {
+      "kind": "band",
+      "band": "l",
+      "text": "Unser Leben als Christ"
+    },
+    {
+      "kind": "song",
+      "time": "19:47",
+      "title": "Lied 10",
+      "who": ""
+    },
+    {
+      "kind": "part",
+      "time": "19:51",
+      "title": "7. Spenden, die den Namen Gottes ehren",
+      "sub": "15 Min. · 1Ch 29:8-10; Ps 96:8; 1Ch 29:14-16; Jes 12:5",
+      "src": "",
+      "who": "",
+      "rat": null
+    },
+    {
+      "kind": "part",
+      "time": "20:06",
+      "title": "8. Versammlungsbibelstudium",
+      "sub": "30 Min. · wcg Kap. 16",
+      "src": "",
+      "who": "",
+      "rat": null
+    },
+    {
+      "kind": "note",
+      "time": "20:36",
+      "title": "Schlussworte",
+      "who": "3 Min",
+      "fields": [
+        {
+          "label": "Rückblick / roter Faden des Abends",
+          "lines": 4,
+          "text": ""
+        },
+        {
+          "label": "Bekanntmachungen · Briefe · Notizen",
+          "lines": 4,
+          "text": ""
+        },
+        {
+          "label": "Nächste Woche",
+          "lines": 2,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "kind": "song",
+      "time": "20:40",
+      "title": "Lied 150",
+      "who": "Gebet: "
+    }
+  ]
+}

@@ -1,0 +1,200 @@
+{
+  "meta": {
+    "titel": "KLAGELIEDER 3–5",
+    "datum": "Do., 26.11.2026",
+    "woche": "Woche 23.–29. November 2026",
+    "montag": "2026-11-23",
+    "erstellt_von": "Claude",
+    "geprueft_von": "",
+    "versammlung": "Tettnang",
+    "saal": "Hauptsaal",
+    "vorsitzender": "",
+    "hilfsratgeber": ""
+  },
+  "items": [
+    {
+      "kind": "song",
+      "time": "19:00",
+      "title": "Lied 158",
+      "who": "Gebet: "
+    },
+    {
+      "kind": "note",
+      "time": "19:05",
+      "title": "Einleitende Worte",
+      "who": "1 Min",
+      "fields": [
+        {
+          "label": "Aufhänger / Bezug zum Bibelabschnitt",
+          "lines": 4,
+          "text": ""
+        },
+        {
+          "label": "Was hebe ich für heute Abend hervor?",
+          "lines": 3,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "kind": "band",
+      "band": "g",
+      "text": "Schätze aus Gottes Wort"
+    },
+    {
+      "kind": "part",
+      "time": "19:06",
+      "title": "1. Gib bei Schwierigkeiten nicht auf",
+      "sub": "10 Min. · Klg 3:22-24; Mat 6:34",
+      "src": "",
+      "who": "",
+      "rat": null
+    },
+    {
+      "kind": "part",
+      "time": "19:16",
+      "title": "2. Nach geistigen Schätzen graben",
+      "sub": "10 Min. · Klg 3:27",
+      "src": "",
+      "who": "",
+      "rat": null
+    },
+    {
+      "kind": "part",
+      "time": "19:26",
+      "title": "3. Bibellesung",
+      "sub": "4 Min. · Klg 3:19-42",
+      "src": "th Lektion 12",
+      "who": "",
+      "rat": {
+        "lesson": "th Lektion 12 – „Wärme und Einfühlungsvermögen“",
+        "intro": "Ziel: Wärme und Mitgefühl hörbar machen.",
+        "bullets": [
+          "Vorher überlegen, was die Zuhörer beschäftigt und wie der Text sie berühren kann.",
+          "Freundliche, warme Stimme und offener Gesichtsausdruck zeigen echtes Mitgefühl.",
+          "Die Gefühle im Text (Klage, Hoffnung) einfühlsam wiedergeben, ohne zu übertreiben."
+        ],
+        "zeit": "4 Min.",
+        "feedback": ""
+      }
+    },
+    {
+      "kind": "band",
+      "band": "b",
+      "text": "Uns im Dienst verbessern"
+    },
+    {
+      "kind": "part",
+      "time": "19:31",
+      "title": "4. Gespräche beginnen",
+      "sub": "3 Min. · Von Haus zu Haus",
+      "src": "lmd Lektion 5, Punkt 4",
+      "who": "",
+      "rat": {
+        "lesson": "lmd Lektion 5 „Feingefühl“ – Punkt 4",
+        "intro": "Punkt 4: Nicht alles korrigieren, was der andere sagt.",
+        "bullets": [
+          "Nicht jede Aussage sofort richtigstellen.",
+          "Offen zuhören und verstehen wollen, was der andere denkt."
+        ],
+        "zeit": "3 Min.",
+        "feedback": ""
+      }
+    },
+    {
+      "kind": "part",
+      "time": "19:35",
+      "title": "5. Gespräche beginnen",
+      "sub": "4 Min. · Informell",
+      "src": "lmd Lektion 4, Punkt 3",
+      "who": "",
+      "rat": {
+        "lesson": "lmd Lektion 4 „Demut“ – Punkt 3",
+        "intro": "Punkt 3: Begegne deinem Gesprächspartner auf Augenhöhe.",
+        "bullets": [
+          "Nicht den Eindruck erwecken, alles besser zu wissen.",
+          "Ihn stets respektvoll behandeln."
+        ],
+        "zeit": "4 Min.",
+        "feedback": ""
+      }
+    },
+    {
+      "kind": "part",
+      "time": "19:40",
+      "title": "6. Vortrag",
+      "sub": "5 Min. · Thema: Ältere – ein Gewinn für die Versammlung",
+      "src": "th Lektion 16",
+      "who": "",
+      "rat": {
+        "lesson": "th Lektion 16 – „Ermunternd und positiv“",
+        "intro": "Ziel: eine wohlwollende, hoffnungsvolle Grundstimmung.",
+        "bullets": [
+          "Den Zuhörern wohlwollend begegnen – bei Rat erst aufrichtig loben.",
+          "Negatives nur so weit ansprechen, wie das Thema es erfordert.",
+          "Auf die Bibel stützen und betonen, was Jehova getan hat, tut und tun wird – das macht Mut."
+        ],
+        "zeit": "5 Min.",
+        "feedback": ""
+      }
+    },
+    {
+      "kind": "band",
+      "band": "l",
+      "text": "Unser Leben als Christ"
+    },
+    {
+      "kind": "song",
+      "time": "19:47",
+      "title": "Lied 109",
+      "who": ""
+    },
+    {
+      "kind": "part",
+      "time": "19:51",
+      "title": "7. Hilf Pflegenden, ihre Aufgabe zu bewältigen",
+      "sub": "15 Min. · Spr 20:18; Phil 2:4",
+      "src": "",
+      "who": "",
+      "rat": null
+    },
+    {
+      "kind": "part",
+      "time": "20:06",
+      "title": "8. Versammlungsbibelstudium",
+      "sub": "30 Min. · wcg Kap. 18",
+      "src": "",
+      "who": "",
+      "rat": null
+    },
+    {
+      "kind": "note",
+      "time": "20:36",
+      "title": "Schlussworte",
+      "who": "3 Min",
+      "fields": [
+        {
+          "label": "Rückblick / roter Faden des Abends",
+          "lines": 4,
+          "text": ""
+        },
+        {
+          "label": "Bekanntmachungen · Briefe · Notizen",
+          "lines": 4,
+          "text": ""
+        },
+        {
+          "label": "Nächste Woche",
+          "lines": 2,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "kind": "song",
+      "time": "20:40",
+      "title": "Lied 74",
+      "who": "Gebet: "
+    }
+  ]
+}
