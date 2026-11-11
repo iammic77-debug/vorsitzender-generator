@@ -1,0 +1,55 @@
+name: Wochen-Dateien prüfen
+
+on:
+  push:
+    paths: ["wochen/**"]
+  pull_request:
+    paths: ["wochen/**"]
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: JSON und Pflichtfelder prüfen
+        run: |
+          python3 - <<'PY'
+          import json, re, glob, sys
+          fehler = []
+          for f in sorted(glob.glob("wochen/*.json")):
+              name = f.split("/")[-1][:-5]
+              try:
+                  d = json.load(open(f, encoding="utf-8"))
+              except Exception as e:
+                  fehler.append(f"{f}: kein gültiges JSON – {e}"); continue
+              if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", name):
+                  fehler.append(f"{f}: Dateiname muss JJJJ-MM-TT.json sein")
+              m = d.get("meta", {})
+              if not isinstance(d.get("items"), list) or not d["items"]:
+                  fehler.append(f"{f}: 'items' fehlt oder ist leer")
+              for k in ["titel", "datum", "woche", "montag", "versammlung", "saal"]:
+                  if not m.get(k):
+                      fehler.append(f"{f}: meta.{k} fehlt")
+              if m.get("montag") and m["montag"] != name:
+                  fehler.append(f"{f}: meta.montag ({m['montag']}) passt nicht zum Dateinamen")
+              if m.get("geprueft_von") and m.get("geprueft_von") == m.get("erstellt_von"):
+                  fehler.append(f"{f}: geprueft_von darf nicht gleich erstellt_von sein (Vier-Augen-Prinzip)")
+              if m.get("vorsitzender") or m.get("hilfsratgeber"):
+                  fehler.append(f"{f}: vorsitzender/hilfsratgeber müssen leer sein")
+              for i, it in enumerate(d.get("items", []), 1):
+                  if it.get("kind") not in ("song", "note", "band", "part"):
+                      fehler.append(f"{f}: Eintrag {i} hat unbekanntes 'kind'")
+                  if it.get("kind") == "part":
+                      if it.get("who"):
+                          fehler.append(f"{f}: Eintrag {i} ('{it.get('title')}'): 'who' muss leer sein")
+                      r = it.get("rat")
+                      if r is not None:
+                          for k in ["lesson", "intro", "bullets", "zeit"]:
+                              if not r.get(k):
+                                  fehler.append(f"{f}: Eintrag {i} ('{it.get('title')}'): rat.{k} fehlt")
+                          if isinstance(r.get("bullets"), list) and not (1 <= len(r["bullets"]) <= 5):
+                              fehler.append(f"{f}: Eintrag {i}: rat.bullets sollte 2–4 Punkte haben")
+          if fehler:
+              print("\n".join(fehler)); sys.exit(1)
+          print("Alle Wochen-Dateien in Ordnung.")
+          PY
