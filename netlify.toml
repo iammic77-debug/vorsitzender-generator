@@ -1,0 +1,8 @@
+# Nur nötig, falls die Seite statt über GitHub Pages über Netlify läuft.
+[build]
+  publish = "."
+
+[[headers]]
+  for = "/wochen/*"
+  [headers.values]
+    Cache-Control = "no-cache"

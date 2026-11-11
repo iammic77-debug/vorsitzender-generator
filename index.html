@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Vorsitzender Generator",
+  "schemaVersion": 1,
+  "description": "Wöchentlicher Generator für die Vorsitzenden-Unterlagen (Leben-und-Dienst-Zusammenkunft): Editor + Live-Vorschau von Plan und Arbeitsblatt mit Rat, Export als Word/PDF, Speichern/Laden pro Woche als JSON.",
+  "mcpTools": [],
+  "mcpServerNames": []
+}
+</script>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vorsitzender-Generator · Leben & Dienst</title>
+<style>
+  :root{
+    --ink:#1f2328; --muted:#5b6570; --line:#d6d9dd; --line2:#e8eaed;
+    --green:#2f5d50; --green-soft:#eaf1ee; --brown:#6d4b2f; --blue:#3a5c7a;
+    --gold:#b08a4a; --rat-bg:#fbf7ef; --rat-border:#e3d3ad;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:#eceef0;font-size:14px;line-height:1.42}
+  /* ---- App chrome ---- */
+  .topbar{position:sticky;top:0;z-index:30;background:#20242a;color:#fff;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:9px 16px}
+  .topbar .brand{font-weight:700}
+  .topbar .brand b{color:#8fd4bf}
+  .topbar .spacer{flex:1}
+  .btn{background:#2f5d50;color:#fff;border:0;padding:8px 13px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
+  .btn.alt{background:#3a4048}
+  .btn.gold{background:#a5792f}
+  .btn.ghost{background:transparent;border:1px solid #4a525b;color:#cfd6dd}
+  .layout{display:flex;align-items:flex-start;gap:0}
+  .editor{width:430px;flex:none;background:#f6f7f8;border-right:1px solid #dfe2e5;position:sticky;top:var(--tb,46px);align-self:flex-start;max-height:calc(100vh - var(--tb,46px));overflow:auto;padding:16px}
+  .editor.hidden{display:none}
+  .preview-wrap{flex:1;min-width:0;padding:22px;display:flex;flex-direction:column;align-items:center;gap:22px}
+  .editor h2{font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--green);margin:18px 0 8px;border-bottom:1px solid #e0e3e6;padding-bottom:4px}
+  .editor h2:first-child{margin-top:0}
+  .fld{margin:7px 0}
+  .fld label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:2px}
+  .fld input,.fld textarea{width:100%;border:1px solid #cfd4d9;border-radius:6px;padding:6px 8px;font:inherit;font-size:13px;background:#fff}
+  .fld textarea{resize:vertical;min-height:44px}
+  .grid2{display:grid;grid-template-columns:70px 1fr;gap:8px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .item{border:1px solid #dfe2e5;border-radius:9px;background:#fff;padding:9px 10px;margin:8px 0}
+  .item .ihead{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+  .item .tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:2px 7px;border-radius:10px;color:#fff}
+  .tag.song{background:var(--gold)} .tag.part{background:var(--green)} .tag.band{background:#6b7078} .tag.note{background:var(--blue)}
+  .item .ihead .sp{flex:1}
+  .iconbtn{border:1px solid #d0d5da;background:#fff;color:#5b6570;border-radius:6px;width:26px;height:26px;cursor:pointer;font-size:13px;line-height:1}
+  .iconbtn:hover{background:#eef1f3}
+  .ratbox{border:1px dashed var(--rat-border);background:var(--rat-bg);border-radius:8px;padding:8px;margin-top:8px}
+  .ratbox .rt{font-size:11px;font-weight:700;color:#7a5a20;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+  .chk{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-top:6px}
+  .addrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .addrow .btn{padding:6px 10px;font-size:12px}
+  .hint{font-size:11px;color:#8b939b;margin-top:4px}
+
+  /* ---- Preview pages (mirror of print output) ---- */
+  .page{flex:0 0 auto;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.09);border-radius:8px;width:min(210mm,100%);min-height:297mm;padding:15mm 15mm;position:relative}
+  .pagetag{position:absolute;top:9mm;right:12mm;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
+  .hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--green);padding-bottom:9px}
+  .hd h1{font-size:21px;margin:0;color:var(--green)}
+  .hd .meta{font-size:12px;color:var(--muted);text-align:right;line-height:1.5}
+  .subhd{font-size:12px;color:var(--muted);margin:7px 0 14px}
+  .band{color:#fff;font-weight:700;letter-spacing:.5px;font-size:12px;text-transform:uppercase;padding:6px 12px;border-radius:6px;margin:16px 0 8px}
+  .band.g{background:var(--green)} .band.b{background:var(--brown)} .band.l{background:var(--blue)}
+  .row{display:flex;gap:12px;border-bottom:1px solid var(--line2);padding:7px 2px;align-items:flex-start}
+  .row .t{width:52px;flex:none;color:var(--muted);font-size:13px}
+  .row .c{flex:1}
+  .row .who{width:210px;flex:none;text-align:right;font-size:12px}
+  .row .title{font-weight:600}
+  .row .sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .src{display:inline-block;font-size:11px;color:var(--green);background:var(--green-soft);border-radius:4px;padding:0 6px;margin-left:3px;white-space:nowrap}
+  .song{background:#faf6ef;border-left:3px solid var(--gold)}
+  .song .title{color:#8a6a2f}
+  .opening{background:#f3f7f5;border:1px solid #cfe0d8;border-radius:10px;padding:12px 14px;margin:12px 0}
+  .opening h3{margin:0 0 6px;font-size:14px;color:var(--green);display:flex;justify-content:space-between}
+  .opening h3 span{font-weight:400;color:var(--muted);font-size:12px}
+  .notes{border:1px dashed #c7ccd1;border-radius:8px;margin:8px 0;background:#fcfcfd}
+  .notes .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:6px 10px 0}
+  .lines{padding:8px 10px 10px}
+  .lines .ln{border-bottom:1px solid #dee2e6;height:30px}
+  /* beschreibbares Linienfeld – direkt am PC tippen */
+  .wline{margin:8px 10px 10px;line-height:30px;padding:0 4px;outline:none;white-space:pre-wrap;color:#1f2328;font-size:13px;
+    background-image:repeating-linear-gradient(#fcfcfd,#fcfcfd 29px,#dee2e6 29px,#dee2e6 30px);border-radius:6px}
+  .wline:empty:before{content:attr(data-ph);color:#aeb4ba}
+  .wline:focus{box-shadow:inset 0 0 0 2px #cfe0d8;background-color:#f7fbf9}
+  .assign{border:1px solid var(--line);border-radius:10px;margin:14px 0;overflow:hidden}
+  .assign .top{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;background:#f7f9f9}
+  .assign .top .t{width:48px;color:var(--muted);font-size:13px}
+  .assign .top .c{flex:1}
+  .assign .top .c .title{font-weight:700}
+  .assign .top .c .sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .assign .top .who{font-size:12px;color:var(--muted);text-align:right;width:180px}
+  .rat{background:var(--rat-bg);border-top:1px solid var(--rat-border);padding:12px 14px}
+  .rat .head{margin-bottom:6px}
+  .rat .pill{background:var(--gold);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.3px}
+  .rat .lesson{font-weight:700;color:#7a5a20;font-size:13px;margin-left:6px}
+  .rat p{margin:6px 0;font-size:13px}
+  .rat ul{margin:6px 0 6px 2px;padding-left:18px}
+  .rat li{margin:3px 0;font-size:13px}
+  .rat .focus{background:#fff;border:1px solid var(--rat-border);border-radius:6px;padding:8px 10px;margin-top:8px}
+  .rat .focus b{color:#7a5a20}
+  .zt{margin-top:10px;font-size:12px;color:var(--muted)}
+  .footer{font-size:11px;color:var(--muted);margin-top:16px;border-top:1px solid var(--line2);padding-top:8px}
+
+  /* ---- Fetch modal ---- */
+  .modal-bg{position:fixed;inset:0;background:rgba(20,24,28,.5);z-index:60;display:none;align-items:flex-start;justify-content:center;padding:38px 16px;overflow:auto}
+  .modal-bg.open{display:flex}
+  .modal{background:#fff;border-radius:12px;max-width:740px;width:100%;padding:20px 24px 24px;box-shadow:0 14px 50px rgba(0,0,0,.35)}
+  .modal h3{margin:0;color:var(--green);font-size:18px}
+  .modal .lead{color:var(--muted);font-size:13px;margin:4px 0 6px}
+  .modal .close{float:right;border:0;background:#eef1f3;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:16px;color:#5b6570}
+  .step{border:1px solid #e2e5e8;border-radius:10px;padding:12px 14px;margin:12px 0}
+  .step .sn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;font-size:12px;font-weight:700;margin-right:8px}
+  .step .st{font-weight:600}
+  .step input[type=text],.step textarea{width:100%;border:1px solid #cfd4d9;border-radius:8px;padding:8px 10px;font:inherit;font-size:13px;margin-top:8px;background:#fff}
+  .step textarea{resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.4}
+  .step .row2{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+  .ok{color:#2f7d5a;font-size:12px}
+  .err{color:#b03a3a;font-size:12px}
+
+  @media print{
+    html,body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .topbar,.editor,.modal-bg{display:none!important}
+    body{background:#fff}
+    .preview-wrap{padding:0;height:auto;overflow:visible;display:block}
+    .page{box-shadow:none;border-radius:0;width:auto;min-height:auto;margin:0;padding:12mm 12mm;page-break-after:always}
+    .page:last-child{page-break-after:auto}
+    @page{size:A4;margin:0}
+    /* Bänder ohne Hintergrund-Abhängigkeit: farbige Schrift + Unterlinie -> immer lesbar */
+    .band{background:#fff!important;color:#1f2328;border:0;border-bottom:2.5pt solid currentColor;border-radius:0;padding:5px 2px 4px;font-size:12pt}
+    .band.g{color:#2f5d50!important}
+    .band.b{color:#6d4b2f!important}
+    .band.l{color:#3a5c7a!important}
+    /* RAT-Pille ebenfalls hintergrundsicher */
+    .rat .pill{background:#fff!important;color:#a5792f!important;border:1px solid #a5792f}
+    .wline{box-shadow:none!important;background-color:#fff!important}
+    .wline:empty:before{content:""}
+    /* Seitenumbruch beachten: Kästen/Zeilen/Felder nicht mittendrin zerschneiden */
+    .assign,.row,.song,.notes,.opening .notes,.wline,.focus{break-inside:avoid;page-break-inside:avoid}
+    .band{break-after:avoid;page-break-after:avoid}
+    .opening h3,.assign .top{break-after:avoid;page-break-after:avoid}
+  }
+  /* PDF-Export (direkter Download, ohne Druckdialog) */
+  body.pdf-mode{background:#fff}
+  body.pdf-mode .topbar,body.pdf-mode .editor,body.pdf-mode .modal-bg{display:none!important}
+  body.pdf-mode .layout{display:block}
+  body.pdf-mode .preview-wrap{display:block;padding:0;gap:0}
+  body.pdf-mode .page{width:210mm;min-height:auto;box-shadow:none;border-radius:0;margin:0;padding:12mm}
+  body.pdf-mode .wline{box-shadow:none!important;background-color:#fff!important}
+  body.pdf-mode .wline:empty:before{content:""}
+  body.pdf-mode .pagetag{display:none}
+  /* Wochen-Navigation (Repository) */
+  .weeknav{display:flex;align-items:center;gap:6px;margin-left:10px}
+  .navbtn{padding:6px 10px}
+  .weeklabel{font-weight:700;min-width:150px;text-align:center;color:#fff;font-size:13px}
+  .repostatus{font-size:12px;color:#aab3bd;max-width:340px}
+  .repostatus.ok{color:#8fd4bf}
+  .repostatus.warn{color:#f0c27a}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="brand" title="Vorsitzender-Generator · Leben &amp; Dienst"><b>Vorsitzender</b></span>
+  <span class="weeknav">
+    <button class="btn ghost navbtn" onclick="stepWeek(-7)" title="Vorige Woche">◀</button>
+    <span id="weekLabel" class="weeklabel">–</span>
+    <button class="btn ghost navbtn" onclick="stepWeek(7)" title="Nächste Woche">▶</button>
+    <button class="btn ghost navbtn" onclick="goToday()" title="Aktuelle Woche">Heute</button>
+    <button class="btn ghost navbtn" onclick="resetWeek()" title="Deine Einträge dieser Woche verwerfen und Original neu laden">↺</button>
+  </span>
+  <span id="repoStatus" class="repostatus"></span>
+  <span class="spacer"></span>
+  <button class="btn ghost" onclick="openFetch()">🔗 Woche fehlt?</button>
+  <button class="btn ghost" onclick="openReview()" title="Prüfauftrag für die andere KI">🔎 Zweitmeinung</button>
+  <button class="btn ghost" onclick="toggleEditor()" title="Editor ein-/ausblenden">✎</button>
+  <button class="btn ghost" onclick="saveJSON()" title="Woche als JSON-Datei speichern">💾</button>
+  <button class="btn ghost" onclick="document.getElementById('loadfile').click()" title="JSON-Datei laden">📂</button>
+  <input id="loadfile" type="file" accept="application/json,.json" style="display:none" onchange="loadJSON(event)">
+  <button class="btn gold" onclick="exportWord()">⬇ Word</button>
+  <button class="btn" id="pdfBtn" onclick="exportPDF()">⬇ PDF</button>
+</div>
+
+<!-- Fetch-Modal: Woche über Link holen (Claude-Assist) -->
+<div class="modal-bg" id="fetchModal">
+  <div class="modal">
+    <button class="close" onclick="closeFetch()">✕</button>
+    <h3>Woche fehlt im Repository?</h3>
+    <div class="lead">Gib ChatGPT oder Claude den Auftrag, die Woche im Repository anzulegen. Danach die Woche einfach neu öffnen (▶/◀ oder „Heute") – sie lädt automatisch. Schritt 3 nur, falls du die Datei als Text zurückbekommst.</div>
+
+    <div class="step">
+      <div><span class="sn">1</span><span class="st">jw.org-Link der Woche einfügen</span></div>
+      <input type="text" id="weekLink" placeholder="Link hier einfügen (Strg+V) – z. B. https://www.jw.org/finder?...&date=20261114" oninput="buildRequest()" onpaste="setTimeout(buildRequest,0)" onchange="buildRequest()">
+      <div id="linkMsg" class="hint" style="margin-top:6px"></div>
+    </div>
+
+    <div class="step">
+      <div><span class="sn">2</span><span class="st">Auftrag kopieren &amp; an ChatGPT / Claude senden</span></div>
+      <textarea id="reqText" rows="9" oninput="reqEdited()" onpaste="setTimeout(reqEdited,0)"></textarea>
+      <div class="row2"><button class="btn" onclick="copyReq()">📋 Anfrage kopieren</button><span id="copyMsg"></span></div>
+      <div class="hint">Tipp: Du kannst den Link auch direkt hier in Feld 2 einfügen – er wird automatisch übernommen.</div>
+    </div>
+
+    <div class="step">
+      <div><span class="sn">3</span><span class="st">Nur falls nötig: JSON-Antwort einfügen &amp; übernehmen</span></div>
+      <textarea id="pasteJson" rows="6" placeholder='Hier die von Claude gelieferte JSON einfügen (beginnt mit { "meta": ... )'></textarea>
+      <div class="row2"><button class="btn gold" onclick="applyPaste()">✓ Übernehmen</button><span id="pasteMsg"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Zweitmeinung-Modal -->
+<div class="modal-bg" id="reviewModal">
+  <div class="modal">
+    <button class="close" onclick="document.getElementById('reviewModal').classList.remove('open')">✕</button>
+    <h3>Zweitmeinung einholen</h3>
+    <div class="lead" id="reviewLead"></div>
+    <div class="step">
+      <div><span class="sn">1</span><span class="st">Prüfauftrag kopieren &amp; an die andere KI senden</span></div>
+      <textarea id="reviewText" rows="10"></textarea>
+      <div class="row2"><button class="btn" onclick="copyText('reviewText','reviewMsg')">📋 Auftrag kopieren</button><span id="reviewMsg"></span></div>
+    </div>
+    <div class="step">
+      <div><span class="sn">2</span><span class="st">Danach Woche neu laden</span></div>
+      <div class="hint">Wenn die Prüfung im Repository eingetragen ist: „↺" oder die Woche neu öffnen – oben steht dann „geprüft". Deine Namen und Notizen bleiben erhalten.</div>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="editor" id="editor"></div>
+  <div class="preview-wrap" id="previewWrap">
+    <div class="page" id="page1"></div>
+    <div class="page" id="page2"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATENMODELL — pro Woche. „Neue Woche" leert die Werte,
+   Struktur (Bänder/Teile) bleibt als Vorlage bearbeitbar.
+   ============================================================ */
+function thisWeek(){ return {
+  meta:{
+    titel:"JEREMIA 16–17", datum:"Do., 16.07.2026", woche:"Woche 13.–19. Juli 2026",
+    versammlung:"Tettnang", saal:"Hauptsaal",
+    vorsitzender:"Miguel Cudek", hilfsratgeber:"Miguel Cudek"
+  },
+  items:[
+    {kind:"song", time:"19:00", title:"Lied 34 – Jehova ganz ergeben sein", who:"Gebet: Miguel Cudek"},
+    {kind:"note", time:"19:05", title:"Einleitende Worte", who:"1 Min · Miguel Cudek",
+      fields:[{label:"Aufhänger / Bezug zum Bibelabschnitt", lines:4},{label:"Was hebe ich für heute Abend hervor?", lines:3}]},
+    {kind:"band", band:"g", text:"Schätze aus Gottes Wort"},
+    {kind:"part", time:"19:06", title:"1. Es ist nicht egal, wem wir vertrauen", sub:"10 Min.", who:"Peter Bahro", rat:null},
+    {kind:"part", time:"19:16", title:"2. Geistige Schätze – Jeremia 16–17", sub:"10 Min.", who:"Jürgen Eckweiler", rat:null},
+    {kind:"part", time:"19:26", title:"3. Bibellesung", sub:"4 Min. · Jer 17:5-18", src:"th Lektion 5", who:"Daniel Pasenko",
+      rat:{lesson:'th Lektion 5 – „Korrekt vorlesen"', intro:"Ziel: genau das vorlesen, was im Text steht – nichts hinzufügen, weglassen oder ersetzen.",
+        bullets:["In Sinngruppen lesen und auf die Satzzeichen achten.","Jedes Wort richtig aussprechen (bei Unsicherheit vorab nachschlagen / Audio hören).","Deutlich artikulieren, keine Silben verschlucken – aber nicht überbetonen."], zeit:"4 Min."}},
+    {kind:"band", band:"b", text:"Uns im Dienst verbessern"},
+    {kind:"part", time:"19:31", title:"4. Gespräche beginnen", sub:"3 Min. · Von Haus zu Haus, Video aus der Toolbox", src:"lmd Lektion 5, Punkt 5", who:"Amanda Miller & Damaris Liebrich",
+      rat:{lesson:'lmd Lektion 5 „Feingefühl" – Punkt 5', intro:"Punkt 5: Lob den Gesprächspartner und stimme ihm zu, wo immer möglich.",
+        bullets:["Die meisten meinen ihre Überzeugungen ehrlich – das anerkennen.","Zuerst auf Gemeinsamkeiten aufbauen.","Dann Schritt für Schritt zu den biblischen Wahrheiten hinführen, nicht sofort korrigieren."], zeit:"3 Min."}},
+    {kind:"part", time:"19:35", title:"5. Interesse fördern", sub:"4 Min. · Von Haus zu Haus, Bibelkurs anbieten", src:"lmd Lektion 7, Punkt 4", who:"Annika Reinecke & Stella Pasenko",
+      rat:{lesson:'lmd Lektion 7 „Ausdauer" – Punkt 4', intro:"Punkt 4: Am Ende jedes Gesprächs einen konkreten Termin fürs nächste Treffen ausmachen – und einhalten.",
+        bullets:["Nicht offen auseinandergehen, sondern verbindlich einen nächsten Schritt vereinbaren.","Zeit und Ort so wählen, dass es für den Interessierten passt – auch wenn unbequem für mich."], zeit:"4 Min."}},
+    {kind:"part", time:"19:40", title:"6. Menschen zu Jüngern machen", sub:"5 Min. · lff Lektion 19 – Fazit, Rückblick und Ziel", src:"lmd Lektion 11, Punkt 3", who:"Felicia Tolic & Karin Schafnitzel",
+      rat:{lesson:'lmd Lektion 11 „Einfachheit" – Punkt 3', intro:"Punkt 3: Rede nicht zu viel – konzentriere dich auf den Stoff, nicht auf alles, was du weißt.",
+        bullets:["Bei Fragen Geduld haben und auf die Antwort warten.","Bei Mühe / Widerspruch mit Folgefragen zum Nachdenken anregen.","Erst weitergehen, wenn der Hauptgedanke verstanden ist."], zeit:"5 Min."}},
+    {kind:"band", band:"l", text:"Unser Leben als Christ"},
+    {kind:"song", time:"19:47", title:'Lied 54 – „Das ist der Weg"', who:""},
+    {kind:"part", time:"19:51", title:"7. Such in der Bibel nach Anleitung", sub:"15 Min.", who:"Ivica Tolic", rat:null},
+    {kind:"part", time:"20:06", title:"8. Versammlungsbibelstudium", sub:"30 Min. · lfb Geschichte 102–103", who:"Leiter: Stephan Fritz · Leser: Francesco Bernd", rat:null},
+    {kind:"note", time:"20:36", title:"Schlussworte", who:"3 Min · Miguel Cudek",
+      fields:[{label:"Rückblick / roter Faden des Abends", lines:4},{label:"Bekanntmachungen · Briefe · Notizen", lines:4},
+              {label:"Nächste Woche — Lesung: Torsten Calamiello · 4. Vanessa Miller & Alina Eggert · 5. Sabine Reinecke & Elena Schafnitzel · 6. Felix Bernd", lines:2}]},
+    {kind:"song", time:"20:40", title:"Lied 22 – Dein Königreich regiert — es komme!", who:"Gebet: Michael Huber"}
+  ]
+};}
+
+let state = thisWeek();
+
+/* ---------- helpers ---------- */
+function esc(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function bandClass(b){return b==="b"?"b":b==="l"?"l":"g";}
+function linesHTML(n){let s="";for(let i=0;i<n;i++)s+='<div class="ln"></div>';return s;}
+
+/* ============================================================
+   PREVIEW
+   ============================================================ */
+function renderPreview(){
+  const m=state.meta;
+  // PAGE 1 – PLAN
+  let h='<div class="pagetag">Seite 1 · Plan</div>';
+  h+='<div class="hd"><h1>Vorsitzender · Plan</h1><div class="meta"><b>'+esc(m.titel)+'</b><br>'+esc(m.datum)+' · '+esc(m.versammlung)+' · '+esc(m.saal)+'<br>Vorsitzender: <b>'+esc(m.vorsitzender)+'</b></div></div>';
+  h+='<div class="subhd">Leben-und-Dienst-Zusammenkunft · '+esc(m.woche)+'</div>';
+  state.items.forEach(it=>{
+    if(it.kind==="song"){
+      h+='<div class="row song"><div class="t">'+esc(it.time)+'</div><div class="c"><div class="title">'+esc(it.title)+'</div></div><div class="who">'+esc(it.who)+'</div></div>';
+    } else if(it.kind==="band"){
+      h+='<div class="band '+bandClass(it.band)+'">'+esc(it.text)+'</div>';
+    } else if(it.kind==="part"){
+      h+='<div class="row"><div class="t">'+esc(it.time)+'</div><div class="c"><div class="title">'+esc(it.title)+'</div><div class="sub">'+esc(it.sub)+(it.src?' <span class="src">'+esc(it.src)+'</span>':'')+'</div></div><div class="who">'+esc(it.who)+'</div></div>';
+    } else if(it.kind==="note"){
+      h+='<div class="opening"><h3>'+esc(it.title)+' <span>'+esc(it.time)+' · '+esc(it.who)+'</span></h3>';
+      const ii=state.items.indexOf(it);
+      it.fields.forEach((f,fi)=>{h+='<div class="notes"><div class="lbl">'+esc(f.label)+'</div><div class="wline" contenteditable="true" data-ph="hier tippen …" style="min-height:'+(f.lines*30)+'px" oninput="saveNote('+ii+','+fi+',this.innerText)">'+esc(f.text||"")+'</div></div>';});
+      h+='</div>';
+    }
+  });
+  h+='<div class="footer">Hilfsratgeber: '+esc(m.hilfsratgeber)+' · Schule: '+esc(m.saal)+'</div>';
+  document.getElementById('page1').innerHTML=h;
+
+  // PAGE 2 – ARBEITSBLATT
+  let a='<div class="pagetag">Seite 2 · Arbeitsblatt</div>';
+  a+='<div class="hd"><h1>Arbeitsblatt für Vorsitzenden</h1><div class="meta">Rat an die Schulteilnehmer<br>'+esc(m.datum)+' · '+esc(m.versammlung)+' · '+esc(m.saal)+'<br>Hilfsratgeber: <b>'+esc(m.hilfsratgeber)+'</b></div></div>';
+  a+='<div class="subhd">Quellen als schriftlicher Rat aufbereitet · '+esc(m.woche)+'</div>';
+  const rats=state.items.filter(it=>it.kind==="part"&&it.rat);
+  if(!rats.length) a+='<p style="color:#8b939b">Noch kein Schulteil mit Rat markiert. Im Editor bei einem Teil „Schulteil mit Rat" aktivieren.</p>';
+  rats.forEach(it=>{
+    const r=it.rat;
+    a+='<div class="assign"><div class="top"><div class="t">'+esc(it.time)+'</div><div class="c"><div class="title">'+esc(it.title)+'</div><div class="sub">'+esc(it.sub)+'</div></div><div class="who">'+esc(it.who)+'</div></div>';
+    a+='<div class="rat"><div class="head"><span class="pill">RAT</span><span class="lesson">'+esc(r.lesson)+'</span></div>';
+    a+='<p><b>'+esc(r.intro)+'</b></p><ul>'+r.bullets.map(b=>'<li>'+esc(b)+'</li>').join('')+'</ul>';
+    const ii=state.items.indexOf(it);
+    a+='<div class="focus"><b>Rückmeldung an den Teilnehmer:</b><div class="wline" contenteditable="true" data-ph="hier tippen …" style="min-height:90px" oninput="saveFeedback('+ii+',this.innerText)">'+esc(r.feedback||"")+'</div></div>';
+    a+='<div class="zt">Zeiteinteilung: __________ von '+esc(r.zeit||it.sub)+'</div></div></div>';
+  });
+  a+='<div class="footer">Quellen laut jw.org der jeweiligen Woche. Rat-Texte sinngemäß zusammengefasst.</div>';
+  document.getElementById('page2').innerHTML=a;
+}
+
+/* ============================================================
+   EDITOR
+   ============================================================ */
+function renderEditor(){
+  const m=state.meta;
+  let h='<h2>Kopf / Woche</h2>';
+  const mf=[["titel","Bibelabschnitt / Wochentext"],["datum","Datum"],["woche","Woche (Zeitraum)"],["versammlung","Versammlung"],["saal","Saal / Schule"],["vorsitzender","Vorsitzender"],["hilfsratgeber","Hilfsratgeber"]];
+  mf.forEach(([k,l])=>{h+='<div class="fld"><label>'+l+'</label><input value="'+esc(m[k])+'" oninput="setMeta(\''+k+'\',this.value)"></div>';});
+
+  h+='<h2>Programm</h2>';
+  state.items.forEach((it,i)=>{ h+=itemEditor(it,i); });
+  h+='<div class="addrow"><button class="btn" onclick="addItem(\'part\')">＋ Teil</button><button class="btn alt" onclick="addItem(\'song\')">＋ Lied</button><button class="btn alt" onclick="addItem(\'band\')">＋ Rubrik</button><button class="btn alt" onclick="addItem(\'note\')">＋ Notizblock</button></div>';
+  h+='<div class="hint">Reihenfolge mit ▲▼ ändern · 🗑 löscht die Zeile.</div>';
+  document.getElementById('editor').innerHTML=h;
+}
+function itemEditor(it,i){
+  const move='<button class="iconbtn" onclick="moveItem('+i+',-1)">▲</button><button class="iconbtn" onclick="moveItem('+i+',1)">▼</button><button class="iconbtn" onclick="delItem('+i+')">🗑</button>';
+  let h='<div class="item"><div class="ihead"><span class="tag '+it.kind+'">'+it.kind+'</span><span class="sp"></span>'+move+'</div>';
+  if(it.kind==="band"){
+    h+='<div class="fld"><input value="'+esc(it.text)+'" oninput="setField('+i+',\'text\',this.value)"></div>';
+    h+='<div class="fld"><label>Farbe</label><select oninput="setField('+i+',\'band\',this.value)" onchange="setField('+i+',\'band\',this.value)">'
+      +['g|Grün','b|Braun','l|Blau'].map(o=>{const[v,n]=o.split('|');return '<option value="'+v+'"'+(it.band===v?' selected':'')+'>'+n+'</option>';}).join('')+'</select></div>';
+  } else if(it.kind==="song"){
+    h+='<div class="grid2"><div class="fld"><label>Zeit</label><input value="'+esc(it.time)+'" oninput="setField('+i+',\'time\',this.value)"></div><div class="fld"><label>Titel</label><input value="'+esc(it.title)+'" oninput="setField('+i+',\'title\',this.value)"></div></div>';
+    h+='<div class="fld"><label>Gebet / rechts</label><input value="'+esc(it.who)+'" oninput="setField('+i+',\'who\',this.value)"></div>';
+  } else if(it.kind==="note"){
+    h+='<div class="grid2"><div class="fld"><label>Zeit</label><input value="'+esc(it.time)+'" oninput="setField('+i+',\'time\',this.value)"></div><div class="fld"><label>Titel</label><input value="'+esc(it.title)+'" oninput="setField('+i+',\'title\',this.value)"></div></div>';
+    h+='<div class="fld"><label>Untertitel (rechts)</label><input value="'+esc(it.who)+'" oninput="setField('+i+',\'who\',this.value)"></div>';
+    it.fields.forEach((f,fi)=>{h+='<div class="ratbox"><div class="rt">Notizfeld '+(fi+1)+'</div><div class="fld"><label>Beschriftung</label><input value="'+esc(f.label)+'" oninput="setNoteField('+i+','+fi+',\'label\',this.value)"></div><div class="grid2"><div class="fld"><label>Zeilen</label><input type="number" min="1" max="12" value="'+f.lines+'" oninput="setNoteField('+i+','+fi+',\'lines\',parseInt(this.value)||1)"></div><div class="fld" style="align-self:end"><button class="iconbtn" onclick="delNoteField('+i+','+fi+')">🗑 Feld</button></div></div></div>';});
+    h+='<div class="addrow"><button class="btn alt" onclick="addNoteField('+i+')">＋ Notizfeld</button></div>';
+  } else if(it.kind==="part"){
+    h+='<div class="grid2"><div class="fld"><label>Zeit</label><input value="'+esc(it.time)+'" oninput="setField('+i+',\'time\',this.value)"></div><div class="fld"><label>Titel</label><input value="'+esc(it.title)+'" oninput="setField('+i+',\'title\',this.value)"></div></div>';
+    h+='<div class="fld"><label>Untertitel (Dauer / Auftrag)</label><input value="'+esc(it.sub||"")+'" oninput="setField('+i+',\'sub\',this.value)"></div>';
+    h+='<div class="grid3"><div class="fld"><label>Quelle-Label</label><input value="'+esc(it.src||"")+'" oninput="setField('+i+',\'src\',this.value)"></div><div class="fld"><label>Zuständige (rechts)</label><input value="'+esc(it.who)+'" oninput="setField('+i+',\'who\',this.value)"></div></div>';
+    h+='<label class="chk"><input type="checkbox" '+(it.rat?'checked':'')+' onchange="toggleRat('+i+',this.checked)"> Schulteil mit Rat (erscheint im Arbeitsblatt)</label>';
+    if(it.rat){const r=it.rat;
+      h+='<div class="ratbox"><div class="rt">Rat / Quelle</div>';
+      h+='<div class="fld"><label>Lektion (Überschrift)</label><input value="'+esc(r.lesson)+'" oninput="setRat('+i+',\'lesson\',this.value)"></div>';
+      h+='<div class="fld"><label>Kernpunkt (fett)</label><textarea oninput="setRat('+i+',\'intro\',this.value)">'+esc(r.intro)+'</textarea></div>';
+      h+='<div class="fld"><label>Stichpunkte (eine Zeile = ein Punkt)</label><textarea style="min-height:70px" oninput="setRatBullets('+i+',this.value)">'+esc(r.bullets.join("\n"))+'</textarea></div>';
+      h+='<div class="fld"><label>Dauer (für Zeiteinteilung)</label><input value="'+esc(r.zeit||"")+'" oninput="setRat('+i+',\'zeit\',this.value)"></div></div>';
+    }
+  }
+  h+='</div>';
+  return h;
+}
+
+/* ---------- state mutations ---------- */
+function refresh(){renderPreview();persist();}
+function fullRefresh(){renderEditor();renderPreview();persist();}
+function setMeta(k,v){state.meta[k]=v;refresh();}
+function setField(i,k,v){state.items[i][k]=v;refresh();}
+function setNoteField(i,fi,k,v){state.items[i].fields[fi][k]=v;refresh();}
+function saveNote(i,fi,v){if(state.items[i]&&state.items[i].fields[fi])state.items[i].fields[fi].text=v;persist();} /* kein Re-Render -> Cursor bleibt */
+function saveFeedback(i,v){if(state.items[i]&&state.items[i].rat)state.items[i].rat.feedback=v;persist();}
+function addNoteField(i){state.items[i].fields.push({label:"Neues Feld",lines:2});fullRefresh();}
+function delNoteField(i,fi){state.items[i].fields.splice(fi,1);fullRefresh();}
+function setRat(i,k,v){state.items[i].rat[k]=v;refresh();}
+function setRatBullets(i,v){state.items[i].rat.bullets=v.split("\n").filter(x=>x.trim()!=="");refresh();}
+function toggleRat(i,on){state.items[i].rat = on?{lesson:"",intro:"",bullets:[""],zeit:state.items[i].sub||""}:null;fullRefresh();}
+function moveItem(i,d){const j=i+d;if(j<0||j>=state.items.length)return;const t=state.items[i];state.items[i]=state.items[j];state.items[j]=t;fullRefresh();}
+function delItem(i){if(!confirm("Zeile löschen?"))return;state.items.splice(i,1);fullRefresh();}
+function addItem(kind){
+  let it;
+  if(kind==="song")it={kind,time:"",title:"Lied –",who:""};
+  else if(kind==="band")it={kind,band:"g",text:"Neue Rubrik"};
+  else if(kind==="note")it={kind,time:"",title:"Notizen",who:"",fields:[{label:"Feld",lines:3}]};
+  else it={kind:"part",time:"",title:"Neuer Teil",sub:"",src:"",who:"",rat:null};
+  state.items.push(it);fullRefresh();
+  document.getElementById('editor').scrollTop=document.getElementById('editor').scrollHeight;
+}
+function toggleEditor(){document.getElementById('editor').classList.toggle('hidden');}
+function newWeek(){
+  if(!confirm("Neue Woche: Werte leeren (Struktur als Vorlage behalten)?"))return;
+  // keep structure, clear values
+  state.meta={titel:"",datum:"",woche:"",versammlung:state.meta.versammlung,saal:state.meta.saal,vorsitzender:"",hilfsratgeber:""};
+  state.items.forEach(it=>{
+    if(it.kind==="song"){it.time="";it.who="";}
+    if(it.kind==="part"){it.who="";it.src="";it.sub="";if(it.rat){it.rat={lesson:"",intro:"",bullets:[""],zeit:"",feedback:""};}}
+    if(it.kind==="note"){it.who="";it.fields.forEach(f=>f.text="");}
+  });
+  fullRefresh();
+}
+
+/* ---------- JSON save / load ---------- */
+function saveJSON(){
+  const name=(state.meta.datum||"woche").replace(/[^\w.-]+/g,"_");
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  dl(blob,"Vorsitzender_"+name+".json");
+}
+function loadJSON(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=e=>{try{state=JSON.parse(e.target.result);adoptMonday();fullRefresh();}catch(err){alert("JSON konnte nicht gelesen werden: "+err.message);}};
+  rd.readAsText(f); ev.target.value="";
+}
+function dl(blob,fname){
+  const u=URL.createObjectURL(blob);const a=document.createElement("a");a.href=u;a.download=fname;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500);
+}
+
+/* ---------- Word export (.doc, in Word beschreibbar) ---------- */
+function exportWord(){
+  const css=`
+    body{font-family:Calibri,Arial,sans-serif;color:#1f2328;font-size:11pt}
+    h1{color:#2f5d50;font-size:18pt;margin:0}
+    .meta{color:#5b6570;font-size:9pt;text-align:right}
+    table{border-collapse:collapse;width:100%}
+    .hd td{border-bottom:2px solid #2f5d50;padding-bottom:6px;vertical-align:bottom}
+    .sub{color:#5b6570;font-size:9pt;margin:6px 0 10px}
+    .band{color:#fff;font-weight:bold;font-size:10pt;text-transform:uppercase;padding:5px 10px;margin:12px 0 6px}
+    .bg{background:#2f5d50}.bb{background:#6d4b2f}.bl{background:#3a5c7a}
+    .row td{border-bottom:1px solid #e8eaed;padding:5px 3px;vertical-align:top}
+    .t{color:#5b6570;font-size:9.5pt;width:60px}
+    .title{font-weight:bold}.s{color:#5b6570;font-size:9pt}
+    .who{color:#1f2328;font-size:9pt;text-align:right}
+    .song td{background:#faf6ef}
+    .opening{border:1px solid #cfe0d8;background:#f3f7f5;padding:8px 10px;margin:10px 0}
+    .oh{color:#2f5d50;font-weight:bold;font-size:11pt}
+    .nb{border:1px solid #c7ccd1;background:#fff;padding:6px 8px;margin:6px 0}
+    .nl{color:#5b6570;font-size:8.5pt;text-transform:uppercase}
+    .ln{border-bottom:1px solid #c7ccd1;height:26px}
+    .assign{border:1px solid #d6d9dd;margin:12px 0}
+    .atop{background:#f7f9f9;padding:8px 10px}
+    .rat{background:#fbf7ef;border-top:1px solid #e3d3ad;padding:10px}
+    .pill{background:#b08a4a;color:#fff;font-size:8pt;font-weight:bold;padding:2px 7px}
+    .lesson{color:#7a5a20;font-weight:bold}
+    .focus{background:#fff;border:1px solid #e3d3ad;padding:6px 8px;margin-top:6px}
+    .zt{color:#5b6570;font-size:9pt;margin-top:8px}
+    .footer{color:#5b6570;font-size:8.5pt;border-top:1px solid #e8eaed;padding-top:6px;margin-top:14px}
+  `;
+  const m=state.meta;
+  function nl(n){let s="";for(let i=0;i<n;i++)s+='<div class="ln">&nbsp;</div>';return s;}
+  function fc(text,lines){const t=(text||"").trim();if(!t)return nl(lines);return '<div style="white-space:pre-wrap;padding:2px 0 4px;border-bottom:1px solid #c7ccd1">'+esc(t).replace(/\n/g,'<br>')+'</div>'+nl(1);}
+  let b='';
+  // Plan
+  b+='<table class="hd"><tr><td><h1>Vorsitzender &middot; Plan</h1></td><td class="meta"><b>'+esc(m.titel)+'</b><br>'+esc(m.datum)+' &middot; '+esc(m.versammlung)+' &middot; '+esc(m.saal)+'<br>Vorsitzender: <b>'+esc(m.vorsitzender)+'</b></td></tr></table>';
+  b+='<div class="sub">Leben-und-Dienst-Zusammenkunft &middot; '+esc(m.woche)+'</div>';
+  state.items.forEach(it=>{
+    if(it.kind==="song") b+='<table class="row song"><tr><td class="t">'+esc(it.time)+'</td><td class="title">'+esc(it.title)+'</td><td class="who">'+esc(it.who)+'</td></tr></table>';
+    else if(it.kind==="band") b+='<div class="band b'+bandClass(it.band)+'">'+esc(it.text)+'</div>';
+    else if(it.kind==="part") b+='<table class="row"><tr><td class="t">'+esc(it.time)+'</td><td><span class="title">'+esc(it.title)+'</span><div class="s">'+esc(it.sub)+(it.src?' ['+esc(it.src)+']':'')+'</div></td><td class="who">'+esc(it.who)+'</td></tr></table>';
+    else if(it.kind==="note"){b+='<div class="opening"><div class="oh">'+esc(it.title)+' <span style="color:#5b6570;font-weight:normal;font-size:9pt">'+esc(it.time)+' &middot; '+esc(it.who)+'</span></div>';it.fields.forEach(f=>{b+='<div class="nb"><div class="nl">'+esc(f.label)+'</div>'+fc(f.text,f.lines)+'</div>';});b+='</div>';}
+  });
+  b+='<div class="footer">Hilfsratgeber: '+esc(m.hilfsratgeber)+' &middot; Schule: '+esc(m.saal)+'</div>';
+  // page break
+  b+='<br clear="all" style="page-break-before:always">';
+  // Arbeitsblatt
+  b+='<table class="hd"><tr><td><h1>Arbeitsblatt für Vorsitzenden</h1></td><td class="meta">Rat an die Schulteilnehmer<br>'+esc(m.datum)+' &middot; '+esc(m.versammlung)+' &middot; '+esc(m.saal)+'<br>Hilfsratgeber: <b>'+esc(m.hilfsratgeber)+'</b></td></tr></table>';
+  b+='<div class="sub">Quellen als schriftlicher Rat aufbereitet &middot; '+esc(m.woche)+'</div>';
+  state.items.filter(it=>it.kind==="part"&&it.rat).forEach(it=>{const r=it.rat;
+    b+='<div class="assign"><div class="atop"><table><tr><td class="t">'+esc(it.time)+'</td><td><span class="title">'+esc(it.title)+'</span><div class="s">'+esc(it.sub)+'</div></td><td class="who">'+esc(it.who)+'</td></tr></table></div>';
+    b+='<div class="rat"><div><span class="pill">RAT</span> <span class="lesson">'+esc(r.lesson)+'</span></div>';
+    b+='<p><b>'+esc(r.intro)+'</b></p><ul>'+r.bullets.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';
+    b+='<div class="focus"><b>Rückmeldung an den Teilnehmer:</b>'+fc(r.feedback,3)+'</div>';
+    b+='<div class="zt">Zeiteinteilung: __________ von '+esc(r.zeit||it.sub)+'</div></div></div>';
+  });
+  b+='<div class="footer">Quellen laut jw.org der jeweiligen Woche. Rat-Texte sinngemäß zusammengefasst.</div>';
+
+  const html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Vorsitzender</title>'
+    +'<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->'
+    +'<style>@page{size:A4;margin:1.6cm}'+css+'</style></head><body>'+b+'</body></html>';
+  const name=(state.meta.datum||"woche").replace(/[^\w.-]+/g,"_");
+  dl(new Blob(['﻿'+html],{type:"application/msword"}),"Vorsitzender_"+name+".doc");
+}
+
+/* ============================================================
+   FETCH-MODAL — Claude-Assist (Link -> Anfrage -> JSON zurück)
+   ============================================================ */
+const LINK_MISSING="(LINK FEHLT – bitte oben in Feld 1 oder hier einfügen)";
+function openFetch(){
+  document.getElementById('fetchModal').classList.add('open');buildRequest();
+  setTimeout(()=>document.getElementById('weekLink').focus(),50);
+}
+function closeFetch(){document.getElementById('fetchModal').classList.remove('open');}
+function findUrl(t){const m=(t||"").match(/https?:\/\/[^\s"'<>]+/i);return m?m[0]:"";}
+function reqEdited(){
+  // Link direkt in Feld 2 eingefügt? -> nach Feld 1 übernehmen und Anfrage neu aufbauen
+  const ta=document.getElementById('reqText'), inp=document.getElementById('weekLink');
+  const url=findUrl(ta.value);
+  if(url && url!==inp.value.trim()){ inp.value=url; buildRequest(); }
+}
+function buildRequest(){
+  const inp=document.getElementById('weekLink');
+  let link=(inp.value||"").trim();
+  const url=findUrl(link); if(url && url!==link){ link=url; inp.value=url; }
+  const msg=document.getElementById('linkMsg');
+  if(!link){ msg.className="hint"; msg.textContent=""; }
+  else if(/jw\.org/i.test(link)){ msg.className="ok"; msg.textContent="✓ Link erkannt"; }
+  else { msg.className="err"; msg.textContent="Das sieht nicht nach einem jw.org-Link aus – trotzdem übernommen."; }
+  const linkLine = link ? link : LINK_MISSING;
+  const mon=currentMonday||ymd(mondayOf(new Date()));
+  const req =
+`Lege im GitHub-Repository ${REPO_NAME} (Branch ${REPO_BRANCH}) diese Wochen-Datei an:
+
+Datei:    wochen/${mon}.json   (${weekLabelOf(mon)})
+Programm: ${linkLine}
+
+Format, Regeln und Ablauf stehen in ANLEITUNG_KI.md im Repository – halte dich genau daran.
+Vorlage zum Abgleichen: wochen/2026-11-09.json
+Commit-Nachricht: "Woche ${mon} hinzugefügt"
+
+Falls du keinen Schreibzugriff auf das Repository hast: gib mir stattdessen nur den
+vollständigen Dateiinhalt als gültiges JSON zurück (kein Text drumherum).`;
+  document.getElementById('reqText').value=req;
+}
+function copyReq(){
+  const ta=document.getElementById('reqText'), msg=document.getElementById('copyMsg');
+  if(!document.getElementById('weekLink').value.trim()){
+    msg.className="err"; msg.textContent="Erst den Link in Feld 1 einfügen."; document.getElementById('weekLink').focus(); return;
+  }
+  const ok=()=>{msg.className="ok";msg.textContent="✓ kopiert – jetzt an ChatGPT / Claude senden";setTimeout(()=>msg.textContent="",4000);};
+  const fallback=()=>{
+    ta.focus(); ta.select(); ta.setSelectionRange(0,ta.value.length);
+    let worked=false; try{worked=document.execCommand('copy');}catch(e){}
+    if(worked) ok();
+    else { msg.className="err"; msg.textContent="Kopieren wurde blockiert – der Text ist markiert: bitte Strg+C (Mac: ⌘+C) drücken."; }
+  };
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(ta.value).then(ok,fallback);
+  } else fallback();
+}
+function applyPaste(){
+  const msg=document.getElementById('pasteMsg');
+  let raw=(document.getElementById('pasteJson').value||"").trim();
+  if(!raw){msg.className="err";msg.textContent="Nichts eingefügt.";return;}
+  // tolerate ```json fences
+  raw=raw.replace(/^```(json)?/i,"").replace(/```$/,"").trim();
+  const s=raw.indexOf('{'), e=raw.lastIndexOf('}');
+  if(s>=0&&e>s) raw=raw.slice(s,e+1);
+  try{
+    const obj=JSON.parse(raw);
+    if(!obj.meta||!Array.isArray(obj.items)) throw new Error("Feld 'meta' oder 'items' fehlt.");
+    state=obj; adoptMonday(); fullRefresh();
+    msg.className="ok"; msg.textContent="✓ übernommen";
+    document.getElementById('pasteJson').value="";
+    setTimeout(closeFetch,700);
+  }catch(err){ msg.className="err"; msg.textContent="Ungültige JSON: "+err.message; }
+}
+
+/* ============================================================
+   PDF-EXPORT — erzeugt die PDF direkt und lädt sie herunter.
+   (Druckdialog ist im Desktop-Artefakt gesperrt.)
+   ============================================================ */
+function loadPdfLib(){
+  return new Promise((res,rej)=>{
+    if(window.html2pdf) return res();
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+    s.onload=()=>res(); s.onerror=()=>rej(new Error('PDF-Bibliothek konnte nicht geladen werden'));
+    document.head.appendChild(s);
+  });
+}
+async function exportPDF(){
+  const btn=document.getElementById('pdfBtn'); const label=btn.textContent;
+  btn.textContent='⏳ PDF wird erstellt …'; btn.disabled=true;
+  const y=window.scrollY;
+  try{
+    await loadPdfLib();
+    document.body.classList.add('pdf-mode'); window.scrollTo(0,0);
+    await new Promise(r=>setTimeout(r,80));
+    const name=(state.meta.datum||"woche").replace(/[^\w.-]+/g,"_");
+    await html2pdf().set({
+      margin:0,
+      filename:'Vorsitzender_'+name+'.pdf',
+      image:{type:'jpeg',quality:0.95},
+      html2canvas:{scale:2,useCORS:true,scrollX:0,scrollY:0,backgroundColor:'#ffffff'},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+      pagebreak:{mode:['css','legacy'],before:'#page2',avoid:['.assign','.row','.song','.notes','.band','.opening h3']}
+    }).from(document.getElementById('previewWrap')).save();
+  }catch(err){
+    alert('PDF direkt ging nicht ('+err.message+'). Es wird der Druckdialog versucht – dort „Als PDF speichern" wählen.');
+    try{window.print();}catch(e){}
+  }finally{
+    document.body.classList.remove('pdf-mode'); window.scrollTo(0,y);
+    btn.textContent=label; btn.disabled=false;
+  }
+}
+
+/* ============================================================
+   REPOSITORY — Wochen-Dateien automatisch laden
+   Dateien: wochen/JJJJ-MM-TT.json (Datum = Montag der Woche)
+   Gelesen wird zuerst relativ (GitHub Pages / Netlify), sonst
+   direkt aus dem öffentlichen GitHub-Repo (raw).
+   Eigene Einträge (Namen, Notizen) bleiben pro Woche im Browser.
+   ============================================================ */
+const REPO_NAME='iammic77-debug/vorsitzender-generator';
+const REPO_BRANCH='main';
+const LS_PREFIX='vg_woche_';
+let currentMonday=null, suppressPersist=false;
+
+function lsGet(k){try{const v=localStorage.getItem(LS_PREFIX+k);return v?JSON.parse(v):null;}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(LS_PREFIX+k,JSON.stringify(v));}catch(e){}}
+function lsDel(k){try{localStorage.removeItem(LS_PREFIX+k);}catch(e){}}
+function persist(){ if(suppressPersist||!currentMonday) return; lsSet(currentMonday,state); }
+
+function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function mondayOf(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-((x.getDay()+6)%7));return x;}
+function addDays(s,n){const p=s.split('-').map(Number);return ymd(new Date(p[0],p[1]-1,p[2]+n));}
+function fmtDE(s){const p=s.split('-');return p[2]+'.'+p[1]+'.';}
+function weekLabelOf(mon){return 'Woche '+fmtDE(mon)+'–'+fmtDE(addDays(mon,6))+mon.slice(0,4);}
+function setStatus(t,cls){const e=document.getElementById('repoStatus');e.textContent=t;e.className='repostatus '+(cls||'');}
+function adoptMonday(){ if(state&&state.meta&&/^\d{4}-\d{2}-\d{2}$/.test(state.meta.montag||'')){ currentMonday=state.meta.montag; document.getElementById('weekLabel').textContent=weekLabelOf(currentMonday);} }
+
+function emptyWeek(mon){
+  const w=thisWeek();
+  w.meta={titel:"",datum:"",woche:weekLabelOf(mon),montag:mon,versammlung:w.meta.versammlung,saal:w.meta.saal,vorsitzender:"",hilfsratgeber:""};
+  w.items.forEach(it=>{
+    if(it.kind==="song"){it.title="Lied";it.who=it.who&&it.who.startsWith("Gebet")?"Gebet: ":"";}
+    if(it.kind==="part"){it.who="";it.src="";it.sub="";it.title=it.title.replace(/^(\d+\.).*$/,"$1 ");if(it.rat){it.rat={lesson:"",intro:"",bullets:[""],zeit:"",feedback:""};}}
+    if(it.kind==="note"){it.fields.forEach(f=>f.text="");}
+  });
+  return w;
+}
+async function fetchWeekFile(mon){
+  const urls=[];
+  if(/^https?:$/.test(location.protocol)) urls.push('wochen/'+mon+'.json');
+  urls.push('https://raw.githubusercontent.com/'+REPO_NAME+'/'+REPO_BRANCH+'/wochen/'+mon+'.json');
+  let lastErr='';
+  for(const u of urls){
+    try{
+      const r=await fetch(u,{cache:'no-store'});
+      if(r.status===404){lastErr='404';continue;}
+      if(!r.ok){lastErr='HTTP '+r.status;continue;}
+      const j=await r.json();
+      if(!j.meta||!Array.isArray(j.items)) throw new Error('Datei hat falsches Format');
+      return j;
+    }catch(e){ lastErr=e.message||'Netzwerkfehler'; }
+  }
+  throw new Error(lastErr);
+}
+async function loadWeek(mon,opts){
+  opts=opts||{};
+  currentMonday=mon;
+  document.getElementById('weekLabel').textContent=weekLabelOf(mon);
+  const local=opts.ignoreLocal?null:lsGet(mon);
+  setStatus('⏳ lade …');
+  let remote=null, err=null;
+  try{ remote=await fetchWeekFile(mon); }catch(e){ err=e.message; }
+  if(currentMonday!==mon) return;           // inzwischen weitergeblättert
+  suppressPersist=true;
+  if(remote) remote.meta.montag=remote.meta.montag||mon;
+  if(local && remote){
+    const merged=mergeLocal(remote,local);
+    if(merged){ state=merged; setStatus('✓ mit deinen Einträgen'+reviewTag(remote.meta),'ok'); }
+    else { state=local; setStatus('⚠ deine Fassung (Struktur selbst geändert) – ↺ holt die Repo-Version','warn'); }
+  }
+  else if(local){ state=local; setStatus('✓ deine Einträge (offline)','ok'); }
+  else if(remote){ state=remote; setStatus('✓ geladen'+reviewTag(remote.meta),'ok'); }
+  else {
+    state=emptyWeek(mon);
+    setStatus(err==='404'?'Noch nicht im Repository → „Woche fehlt?"':'Repository nicht erreichbar ('+err+') – leere Vorlage','warn');
+  }
+  fullRefresh();
+  suppressPersist=false;
+}
+function stepWeek(n){ loadWeek(addDays(currentMonday||ymd(mondayOf(new Date())),n)); }
+function goToday(){ loadWeek(ymd(mondayOf(new Date()))); }
+function resetWeek(){
+  if(!currentMonday) return;
+  if(!confirm('Deine Einträge (Namen, Notizen, Änderungen) für '+weekLabelOf(currentMonday)+' verwerfen und das Original neu laden?')) return;
+  lsDel(currentMonday); loadWeek(currentMonday,{ignoreLocal:true});
+}
+
+
+/* ============================================================
+   ZWEITMEINUNG + ZUSAMMENFÜHREN
+   ============================================================ */
+function mergeLocal(remote,local){
+  const r=JSON.parse(JSON.stringify(remote));
+  if(!local||!Array.isArray(local.items)) return null;
+  const same=local.items.length===r.items.length && local.items.every((it,i)=>it.kind===r.items[i].kind);
+  if(!same) return null;                       // Struktur selbst geändert -> nicht mischen
+  r.meta.vorsitzender=(local.meta&&local.meta.vorsitzender)||"";
+  r.meta.hilfsratgeber=(local.meta&&local.meta.hilfsratgeber)||"";
+  r.items.forEach((it,i)=>{
+    const l=local.items[i];
+    if(l.who && l.who.trim() && l.who!==it.who) it.who=l.who;
+    if(it.kind==='note' && Array.isArray(l.fields)){
+      l.fields.forEach((lf,fi)=>{
+        if(it.fields[fi]){ if(lf.text) it.fields[fi].text=lf.text; if(lf.lines) it.fields[fi].lines=lf.lines; }
+        else it.fields.push(lf);               // selbst hinzugefügte Notizfelder behalten
+      });
+    }
+    if(it.rat && l.rat && l.rat.feedback) it.rat.feedback=l.rat.feedback;
+  });
+  return r;
+}
+function reviewTag(meta){
+  if(!meta) return '';
+  return meta.geprueft_von ? ' · geprüft ('+meta.geprueft_von+')' : (meta.erstellt_von?' · ungeprüft':'');
+}
+function openReview(){
+  const mon=currentMonday||ymd(mondayOf(new Date()));
+  const von=(state.meta&&state.meta.erstellt_von)||'';
+  const an= von==='ChatGPT' ? 'Claude' : (von==='Claude' ? 'ChatGPT' : 'die andere KI (nicht die, die die Woche angelegt hat)');
+  document.getElementById('reviewLead').textContent=
+    (von?('Diese Woche wurde von '+von+' angelegt. '):'')+
+    'Schick den Auftrag an '+an+'. Sie prüft unabhängig gegen jw.org, protokolliert jeden Fund mit Gegenmaßnahme und korrigiert nur eindeutige Fehler.'+
+    (state.meta&&state.meta.geprueft_von?(' Bereits geprüft von '+state.meta.geprueft_von+'.'):'');
+  document.getElementById('reviewText').value=
+`Zweitmeinung zu wochen/${mon}.json (${weekLabelOf(mon)})
+Repository: ${REPO_NAME} (Branch ${REPO_BRANCH})
+
+Arbeite genau nach ANLEITUNG_KI.md, Abschnitt 7 „Zweitmeinung".
+Angelegt von: ${von||'unbekannt'} – du bist die zweite, unabhängige Prüfung.
+
+1. Arbeitsheft-Artikel der Woche auf jw.org / wol.jw.org selbst öffnen und Teil für Teil vergleichen.
+2. Jeden rat gegen die th-/lmd-Lektion prüfen (Lektion, Punkt, Inhalt sinngemäß richtig?).
+3. Protokoll reviews/${mon}.md anlegen – jeder Fund mit konkreter Gegenmaßnahme.
+4. Nur eindeutige Fehler direkt korrigieren, Ermessensfragen als OFFEN protokollieren.
+5. meta.geprueft_von setzen, ein Commit: "Zweitmeinung Woche ${mon}: OK" bzw. "…: KORRIGIERT (n Funde)".
+
+Ohne Schreibzugriff: Protokoll und ggf. korrigierte Datei als Text zurückgeben.`;
+  document.getElementById('reviewMsg').textContent='';
+  document.getElementById('reviewModal').classList.add('open');
+}
+function copyText(taId,msgId){
+  const ta=document.getElementById(taId), msg=document.getElementById(msgId);
+  const ok=()=>{msg.className="ok";msg.textContent="✓ kopiert – jetzt senden";setTimeout(()=>msg.textContent="",4000);};
+  const fallback=()=>{ ta.focus(); ta.select(); ta.setSelectionRange(0,ta.value.length);
+    let w=false; try{w=document.execCommand('copy');}catch(e){}
+    if(w) ok(); else { msg.className="err"; msg.textContent="Kopieren blockiert – Text ist markiert: bitte Strg+C (Mac: ⌘+C)."; } };
+  if(navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(ta.value).then(ok,fallback); else fallback();
+}
+
+/* init */
+function fitTop(){const t=document.querySelector('.topbar');if(t)document.documentElement.style.setProperty('--tb',t.offsetHeight+'px');}
+window.addEventListener('resize',fitTop);
+state=emptyWeek(ymd(mondayOf(new Date())));
+fullRefresh();
+fitTop();
+goToday();
+</script>
+</body>
+</html>
